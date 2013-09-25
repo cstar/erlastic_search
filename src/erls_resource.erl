@@ -100,7 +100,7 @@ get_params(#erls_params{host=Host0, port=Port0, timeout=Timeout0})->
             Val -> Val
         end,
     Port = case Port0 of
-            nil -> application:get_env(erlastic_search, host, 9200);
+            nil -> application:get_env(erlastic_search, port, 9200);
             Val1 -> Val1
         end,
     Timeout = case Timeout0 of
