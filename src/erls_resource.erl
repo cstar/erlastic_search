@@ -55,8 +55,10 @@ request(State, Method, Path, Headers, Params, Body, Options) ->
              do_request(State, Method, Path1, Headers, <<>>, Options)
      end.
 
-do_request(#erls_params{host=Host, port=Port, timeout=Timeout},
-           Method, Path, Headers, Body, Options) ->
+
+do_request(Params,
+    Method, Path, Headers, Body, Options ) ->
+    {Host, Port, Timeout} = get_params(Params),
     case hackney:request(Method, <<Host/binary, ":", (list_to_binary(integer_to_list(Port)))/binary,
                                    "/", Path/binary>>, Headers, Body,
                          [{recv_timeout, Timeout} | Options]) of
@@ -91,6 +93,21 @@ has_body(_) ->
 
 default_content_length(B, H) ->
     default_header(<<"Content-Length">>, list_to_binary(integer_to_list(erlang:iolist_size(B))), H).
+
+get_params(#erls_params{host=Host0, port=Port0, timeout=Timeout0})->
+    Host = case Host0 of
+            nil -> application:get_env(erlastic_search, host, <<"127.0.0.1">>);
+            Val -> Val
+        end,
+    Port = case Port0 of
+            nil -> application:get_env(erlastic_search, host, 9200);
+            Val1 -> Val1
+        end,
+    Timeout = case Timeout0 of
+            nil -> application:get_env(erlastic_search, timeout, infinity);
+            Val2 -> Val2
+        end,
+    {Host, Port, Timeout}.
 
 make_body(Body, Headers, Options) when is_list(Body) ->
     {default_content_length(Body, Headers), Options, Body};
